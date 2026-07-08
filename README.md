@@ -6,14 +6,23 @@ A Flutter Plugin to detect System proxy. When using HTTP client that are not pro
 
 ### Installation
 
+Add `flutter_system_proxy` to your `pubspec.yaml`:
+
 ```yaml
 dependencies:
-  ...
-  flutter_system_proxy:
-    git: 
-      url: https://github.com/BrowserStackCE/flutter_system_proxy.git
-      ref: main
+  flutter_system_proxy: ^0.2.0
+```
 
+Then run:
+
+```sh
+flutter pub get
+```
+
+Alternatively, install from the command line:
+
+```sh
+flutter pub add flutter_system_proxy
 ```
 
 ### Basic Usage (Example With Dio)
