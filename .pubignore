@@ -1,0 +1,2 @@
+# Exclude old iOS class files that are tracked in git but no longer used
+ios/Classes/

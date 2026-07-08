@@ -1,22 +1,16 @@
 PODS:
   - Flutter (1.0.0)
-  - flutter_system_proxy (0.0.1):
-    - Flutter
 
 DEPENDENCIES:
   - Flutter (from `Flutter`)
-  - flutter_system_proxy (from `.symlinks/plugins/flutter_system_proxy/ios`)
 
 EXTERNAL SOURCES:
   Flutter:
     :path: Flutter
-  flutter_system_proxy:
-    :path: ".symlinks/plugins/flutter_system_proxy/ios"
 
 SPEC CHECKSUMS:
-  Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
-  flutter_system_proxy: 96eb97e3857a1d1bc533a6f7387a1f0dcb63d782
+  Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
 
-PODFILE CHECKSUM: 4e8f8b2be68aeea4c0d5beb6ff1e79fface1d048
+PODFILE CHECKSUM: cc1f88378b4bfcf93a6ce00d2c587857c6008d3b
 
-COCOAPODS: 1.15.2
+COCOAPODS: 1.17.0

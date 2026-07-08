@@ -5,6 +5,8 @@
 .pub/
 
 build/
+.build/
+.swiftpm/
 **/*.settings
 **/*.project
 **/*.classpath
