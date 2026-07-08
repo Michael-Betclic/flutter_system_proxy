@@ -8,8 +8,6 @@ jobs:
   publish:
     name: Publish package
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write # Required for OIDC-based pub.dev publishing
 
     steps:
       - uses: actions/checkout@v4
@@ -26,4 +24,9 @@ jobs:
         run: flutter pub publish --dry-run
 
       - name: Publish to pub.dev
-        run: flutter pub publish --force
+        env:
+          PUB_CREDENTIALS: ${{ secrets.PUB_CREDENTIALS }}
+        run: |
+          mkdir -p ~/.config/dart
+          echo "$PUB_CREDENTIALS" > ~/.config/dart/pub-credentials.json
+          flutter pub publish --force
