@@ -1,0 +1,29 @@
+name: Publish to pub.dev
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    name: Publish package
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write # Required for OIDC-based pub.dev publishing
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x'
+          channel: stable
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Verify package
+        run: flutter pub publish --dry-run
+
+      - name: Publish to pub.dev
+        run: flutter pub publish --force
