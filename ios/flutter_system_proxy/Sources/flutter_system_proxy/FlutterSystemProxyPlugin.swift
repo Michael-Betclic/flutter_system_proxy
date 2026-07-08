@@ -1,31 +1,33 @@
+import CFNetwork
 import Flutter
 import UIKit
-import JavaScriptCore
 
-public class SwiftFlutterSystemProxyPlugin: NSObject, FlutterPlugin {
+public class FlutterSystemProxyPlugin: NSObject, FlutterPlugin {
   static var proxyCache : [String: [String: Any]] = [:]
-  
+  private static var cachedProxySettingsSignature: String?
+
   public static func register(with registrar: FlutterPluginRegistrar) {
     let channel = FlutterMethodChannel(name: "flutter_system_proxy", binaryMessenger: registrar.messenger())
-    let instance = SwiftFlutterSystemProxyPlugin()
+    let instance = FlutterSystemProxyPlugin()
     registrar.addMethodCallDelegate(instance, channel: channel)
   }
 
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
     switch call.method {
     case "getDeviceProxy":
+        FlutterSystemProxyPlugin.invalidateCacheIfProxySettingsChanged()
         let args = call.arguments as! NSDictionary
         let url = args.value(forKey:"url") as! String
         var dict:[String:Any]? = [:]
-        if(SwiftFlutterSystemProxyPlugin.proxyCache[url] != nil){
-            let res = SwiftFlutterSystemProxyPlugin.proxyCache[url]
+        if(FlutterSystemProxyPlugin.proxyCache[url] != nil){
+            let res = FlutterSystemProxyPlugin.proxyCache[url]
             if(res != nil){
                 dict = res
             }
         } 
         else 
         {
-            let res = SwiftFlutterSystemProxyPlugin.resolve(url: url)
+            let res = FlutterSystemProxyPlugin.resolve(url: url)
             if(res != nil){
                 dict = res
             }
@@ -38,8 +40,8 @@ public class SwiftFlutterSystemProxyPlugin: NSObject, FlutterPlugin {
   }
 
   static func resolve(url:String)->[String:Any]?{
-        if(SwiftFlutterSystemProxyPlugin.proxyCache[url] != nil){
-            return SwiftFlutterSystemProxyPlugin.proxyCache[url]
+        if(FlutterSystemProxyPlugin.proxyCache[url] != nil){
+            return FlutterSystemProxyPlugin.proxyCache[url]
         }
       let proxConfigDict = CFNetworkCopySystemProxySettings()?.takeUnretainedValue() as NSDictionary?
       if proxConfigDict != nil {
@@ -55,10 +57,10 @@ public class SwiftFlutterSystemProxyPlugin: NSObject, FlutterPlugin {
                 var dict: [String: Any] = [:]
                 dict["host"] = proxConfigDict![kCFNetworkProxiesHTTPProxy] as? String
                 dict["port"] = proxConfigDict![kCFNetworkProxiesHTTPPort] as? Int
-                SwiftFlutterSystemProxyPlugin.proxyCache[url] = dict
+                FlutterSystemProxyPlugin.proxyCache[url] = dict
             }
         }
-        return SwiftFlutterSystemProxyPlugin.proxyCache[url]
+        return FlutterSystemProxyPlugin.proxyCache[url]
     }
     
     static func handlePacContent(pacContent: String,url: String){
@@ -71,7 +73,7 @@ public class SwiftFlutterSystemProxyPlugin: NSObject, FlutterPlugin {
                 var dict:[String: Any] = [:]
                 dict["host"] = host
                 dict["port"] = port
-                SwiftFlutterSystemProxyPlugin.proxyCache[url] = dict
+                FlutterSystemProxyPlugin.proxyCache[url] = dict
             }
         }
     }
@@ -93,7 +95,7 @@ public class SwiftFlutterSystemProxyPlugin: NSObject, FlutterPlugin {
                             dict["host"] = host
                             dict["port"] = port
                             let url = client.assumingMemoryBound(to: String.self).pointee
-                            SwiftFlutterSystemProxyPlugin.proxyCache[url] = dict
+                            FlutterSystemProxyPlugin.proxyCache[url] = dict
                         }
                     }
                     CFRunLoopStop(CFRunLoopGetCurrent());
@@ -113,6 +115,30 @@ public class SwiftFlutterSystemProxyPlugin: NSObject, FlutterPlugin {
             return runLoopSource as! CFRunLoopSource
         }
     }
+
+    private static func invalidateCacheIfProxySettingsChanged() {
+        let signature = proxySettingsSignature()
+        if cachedProxySettingsSignature != signature {
+            proxyCache.removeAll(keepingCapacity: true)
+            cachedProxySettingsSignature = signature
+        }
+    }
+
+    private static func proxySettingsSignature() -> String {
+        guard let settings = CFNetworkCopySystemProxySettings()?.takeUnretainedValue() as? NSDictionary else {
+            return ""
+        }
+
+        let signatureComponents: [Any] = [
+            settings[kCFNetworkProxiesProxyAutoConfigEnable] ?? NSNull(),
+            settings[kCFNetworkProxiesProxyAutoConfigURLString] ?? NSNull(),
+            settings[kCFNetworkProxiesProxyAutoConfigJavaScript] ?? NSNull(),
+            settings[kCFNetworkProxiesHTTPEnable] ?? NSNull(),
+            settings[kCFNetworkProxiesHTTPProxy] ?? NSNull(),
+            settings[kCFNetworkProxiesHTTPPort] ?? NSNull(),
+        ]
+
+        return signatureComponents.map { String(describing: $0) }.joined(separator: "\u{1F}")
+    }
     
 }
-
